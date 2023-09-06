@@ -10,7 +10,7 @@ datasource db {
 //用户表
 model User {
   uid       Int         @id @default(autoincrement()) //用户id
-  username  String      @db.VarChar(16)  @unique//用户名
+  username  String      @unique @db.VarChar(16) //用户名
   password  String      @db.VarChar(16) //密码
   gender    user_gender @default(unknown)
   avatar    String?     @default("/avatar/default.png") @db.VarChar(255)
@@ -21,19 +21,18 @@ model User {
 
   friendreq_id1Touser FriendShip[] @relation("FriendShip_id1")
   friendreq_id2Touser FriendShip[] @relation("FriendShip_id2")
-
 }
 
 //好友关系表
-model FriendShip{
-  id Int @id @default(autoincrement())
-  id1 Int
-  id2 Int
-  time DateTime @db.Timestamp()
+model FriendShip {
+  id       Int      @id @default(autoincrement())
+  id1      Int
+  id2      Int
+  time     DateTime @db.Timestamp()
   isDelete Boolean? @default(false) @map("isdelete")
 
-  id1User User @relation("FriendShip_id1",fields: [id1],references: [uid],onDelete: NoAction,onUpdate: NoAction,map:"fk_id1")
-  id2User User @relation("FriendShip_id2",fields: [id2],references: [uid],onDelete: NoAction,onUpdate: NoAction,map:"fk_id2")
+  id1User User @relation("FriendShip_id1", fields: [id1], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_id1")
+  id2User User @relation("FriendShip_id2", fields: [id2], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_id2")
 }
 
 //好友请求表
@@ -45,33 +44,32 @@ model FriendReq {
   agreeTime DateTime @map("agree_time") @db.Timestamp()
   isAgree   Boolean  @default(false) @map("is_agree")
 
-  fromUser   User @relation("friendreq_from_idTouser", fields: [formId], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_from") 
+  fromUser   User @relation("friendreq_from_idTouser", fields: [formId], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_from")
   targetUser User @relation("friendreq_tardet_idTouser", fields: [targetId], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_target")
 }
 
-
 //聊天会话表
 model Conversation {
-  convid     Int      @id @default(autoincrement())
-  isgroup    Boolean  @default(false) //是不是群聊
-  createtime DateTime @default(now()) @db.Timestamp()
-  endtime    DateTime @db.Timestamp() //最后会话时间
+  convId     Int      @id @default(autoincrement()) @map("convid")
+  isGroup    Boolean  @default(false) @map("isgroup") //是不是群聊
+  createTime DateTime @default(now()) @map("createtime") @db.Timestamp()
+  endTime    DateTime @map("endtime") @db.Timestamp() //最后会话时间
 }
 
 //会话参与者
 model Particpant {
-  ptcid  Int @id @default(autoincrement())
-  userId Int
-  convId Int
+  ptcId  Int @id @default(autoincrement()) @map("ptcid")
+  userId Int @map("userid")
+  convId Int @map("convid")
 }
 
 //聊天信息表
 model ChatInfo {
-  chatInoId   Int            @id @default(autoincrement())
-  senderId    Int
+  chatInfoId  Int            @id @default(autoincrement()) @map("chatinfoid")
+  senderId    Int            @map("senderid")
   content     String
   contentType chat_info_type
-  sendTime    DateTime       @default(now()) @db.Timestamp()
+  sendTime    DateTime       @default(now()) @map("sendtime") @db.Timestamp()
 }
 
 //用户性别
