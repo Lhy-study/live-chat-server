@@ -5,10 +5,10 @@ const jwt = require("jsonwebtoken");
 const { secretky } = require("../global");
 
 //用户注册 1.首先要格式校验
-router.post("/reg", async (request, response) => {
+router.post("/register", async (request, response) => {
     const { username, password } = request.body;
     const result = await findUser(username);
-    if (/^[\u4e00-\u9fa5a-zA-Z0-9]{1,7}$/.test(username) && /^(?=.*[0-9])(?=.*[a-zA-Z])[0-9a-zA-Z]{8,16}$/.test(password)) {
+    if (!(/^[\u4e00-\u9fa5a-zA-Z0-9]{1,7}$/.test(username) && /^(?=.*[0-9])(?=.*[a-zA-Z])[0-9a-zA-Z]{8,16}$/.test(password))) {
         response.send({
             code: 400,
             msg: "请检查用户名或者密码是否符合规范",

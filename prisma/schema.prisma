@@ -38,13 +38,13 @@ model FriendShip {
 //好友请求表
 model FriendReq {
   id        Int      @id @default(autoincrement())
-  formId    Int      @map("form_uid") //发起请求的id  
+  fromId    Int      @map("form_uid") //发起请求的id  
   targetId  Int      @map("target_uid") //被请求的id
-  startTime DateTime @default(now()) @map("start_time") @db.Timestamp()
-  agreeTime DateTime @map("agree_time") @db.Timestamp()
+  startTime DateTime @default(now()) @map("start_time") 
+  agreeTime DateTime? @map("agree_time") 
   isAgree   Boolean  @default(false) @map("is_agree")
 
-  fromUser   User @relation("friendreq_from_idTouser", fields: [formId], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_from")
+  fromUser   User @relation("friendreq_from_idTouser", fields: [fromId], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_from")
   targetUser User @relation("friendreq_tardet_idTouser", fields: [targetId], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_target")
 }
 
@@ -52,8 +52,8 @@ model FriendReq {
 model Conversation {
   convId     Int      @id @default(autoincrement()) @map("convid")
   isGroup    Boolean  @default(false) @map("isgroup") //是不是群聊
-  createTime DateTime @default(now()) @map("createtime") @db.Timestamp()
-  endTime    DateTime @map("endtime") @db.Timestamp() //最后会话时间
+  createTime DateTime @default(now()) @map("createtime") 
+  endTime    DateTime? @map("endtime")  //最后会话时间
 }
 
 //会话参与者
@@ -69,7 +69,7 @@ model ChatInfo {
   senderId    Int            @map("senderid")
   content     String
   contentType chat_info_type
-  sendTime    DateTime       @default(now()) @map("sendtime") @db.Timestamp()
+  sendTime    DateTime       @default(now()) @map("sendtime") 
 }
 
 //用户性别
