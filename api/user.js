@@ -1,11 +1,11 @@
-const prisma = require("../prisma");
+const { user } = require("../prisma");
 
 
 //用户注册
 function createUser({ username, password }) {
     return new Promise(async (resolve, reject) => {
         try {
-            await prisma.user.create({
+            await user.create({
                 data: {
                     username,
                     password
@@ -22,7 +22,7 @@ function createUser({ username, password }) {
 function login({ username, password }) {
     return new Promise(async (resolve, reject) => {
         try {
-            const result = await prisma.user.findFirst({
+            const result = await user.findFirst({
                 where: {
                     username,
                 }
@@ -33,7 +33,7 @@ function login({ username, password }) {
             if (result.password !== password) {
                 throw new Error("密码错误")
             }
-            const data = await prisma.user.findFirst({
+            const data = await user.findFirst({
                 where: {
                     username,
                 },
@@ -52,7 +52,7 @@ function update({ uid, value, type }) {
     data[`${type}`] = value
     return new Promise(async (resolve, reject) => {
         try {
-            await prisma.user.update({
+            await user.update({
                 where: {
                     uid,
                 },
@@ -69,7 +69,7 @@ function update({ uid, value, type }) {
 
 // 用户之前注册查找是否重名
 function findUser(username) {
-    return prisma.user.findMany({
+    return user.findMany({
         where: {
             username,
         }

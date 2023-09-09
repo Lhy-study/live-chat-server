@@ -16,11 +16,15 @@ model User {
   avatar    String?     @default("/avatar/default.png") @db.VarChar(255)
   signature String?     @db.VarChar(30)
 
-  friendship_id1Touser FriendReq[] @relation("friendreq_from_idTouser")
-  friendship_id2Touser FriendReq[] @relation("friendreq_tardet_idTouser")
+  friendreq_id1Touser FriendReq[] @relation("friendreq_from_idTouser")
+  friendreq_id2Touser FriendReq[] @relation("friendreq_tardet_idTouser")
 
-  friendreq_id1Touser FriendShip[] @relation("FriendShip_id1")
-  friendreq_id2Touser FriendShip[] @relation("FriendShip_id2")
+  friendship_id1Touser FriendShip[] @relation("FriendShip_id1")
+  friendship_id2Touser FriendShip[] @relation("FriendShip_id2")
+
+  sendChatInfo ChatInfo[] @relation("chatInfo_User") //用户发送过的信息内容
+
+  conversations Conversation[] //用户参与过的会话信息
 }
 
 //好友关系表
@@ -28,7 +32,7 @@ model FriendShip {
   id       Int      @id @default(autoincrement())
   id1      Int
   id2      Int
-  time     DateTime @db.Timestamp()
+  time     DateTime 
   isDelete Boolean? @default(false) @map("isdelete")
 
   id1User User @relation("FriendShip_id1", fields: [id1], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_id1")
@@ -50,26 +54,29 @@ model FriendReq {
 
 //聊天会话表
 model Conversation {
-  convId     Int      @id @default(autoincrement()) @map("convid")
-  isGroup    Boolean  @default(false) @map("isgroup") //是不是群聊
-  createTime DateTime @default(now()) @map("createtime") 
-  endTime    DateTime? @map("endtime")  //最后会话时间
-}
+  convId     Int      @id @default(autoincrement()) @map("conv_id") 
+  isGroup    Boolean  @default(false) @map("is_group") //是不是群聊
+  createTime DateTime @default(now()) @map("create_time") 
+  endChatId   Int? @map("end_chat_id")  @unique//最后会话ID
 
-//会话参与者
-model Particpant {
-  ptcId  Int @id @default(autoincrement()) @map("ptcid")
-  userId Int @map("userid")
-  convId Int @map("convid")
+
+  endChat ChatInfo? @relation("ChatInfo_Conversation_endChat") ///最后会话信息
+  ChatInfos ChatInfo[]  @relation("ChatInfo_Conversation")//会话包含的聊天信息 多对多
+  Users User[] //这个会话包含的用户
 }
 
 //聊天信息表
 model ChatInfo {
-  chatInfoId  Int            @id @default(autoincrement()) @map("chatinfoid")
-  senderId    Int            @map("senderid")
+  chatInfoId  Int            @id @default(autoincrement()) @map("chatinfo_id") 
+  senderId    Int            @map("sender_id")
   content     String
   contentType chat_info_type
-  sendTime    DateTime       @default(now()) @map("sendtime") 
+  sendTime    DateTime       @default(now()) @map("send_time")
+  convId Int @map("convid") @unique
+
+  conversation Conversation @relation("ChatInfo_Conversation_endChat",fields: [convId],references: [convId],map: "ChatInfo_con_end")
+  conversations Conversation  @relation("ChatInfo_Conversation",fields: [convId],references: [convId],map: "ChatInfo_con") //属于这条消息的会话信息 多对多
+  senderInfo User @relation("chatInfo_User",fields: [senderId],references: [uid]) //发送这条信息的用户信息
 }
 
 //用户性别

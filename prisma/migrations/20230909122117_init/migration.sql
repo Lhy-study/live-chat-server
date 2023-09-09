@@ -16,7 +16,7 @@ CREATE TABLE `FriendShip` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `id1` INTEGER NOT NULL,
     `id2` INTEGER NOT NULL,
-    `time` TIMESTAMP NOT NULL,
+    `time` DATETIME(3) NOT NULL,
     `isdelete` BOOLEAN NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
@@ -45,15 +45,6 @@ CREATE TABLE `Conversation` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Particpant` (
-    `ptcid` INTEGER NOT NULL AUTO_INCREMENT,
-    `userid` INTEGER NOT NULL,
-    `convid` INTEGER NOT NULL,
-
-    PRIMARY KEY (`ptcid`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
 CREATE TABLE `ChatInfo` (
     `chatinfoid` INTEGER NOT NULL AUTO_INCREMENT,
     `senderid` INTEGER NOT NULL,
@@ -62,6 +53,15 @@ CREATE TABLE `ChatInfo` (
     `sendtime` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`chatinfoid`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `_ConversationToUser` (
+    `A` INTEGER NOT NULL,
+    `B` INTEGER NOT NULL,
+
+    UNIQUE INDEX `_ConversationToUser_AB_unique`(`A`, `B`),
+    INDEX `_ConversationToUser_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
@@ -75,3 +75,12 @@ ALTER TABLE `FriendReq` ADD CONSTRAINT `fk_from` FOREIGN KEY (`form_uid`) REFERE
 
 -- AddForeignKey
 ALTER TABLE `FriendReq` ADD CONSTRAINT `fk_target` FOREIGN KEY (`target_uid`) REFERENCES `User`(`uid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `ChatInfo` ADD CONSTRAINT `ChatInfo_senderid_fkey` FOREIGN KEY (`senderid`) REFERENCES `User`(`uid`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `_ConversationToUser` ADD CONSTRAINT `_ConversationToUser_A_fkey` FOREIGN KEY (`A`) REFERENCES `Conversation`(`convid`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `_ConversationToUser` ADD CONSTRAINT `_ConversationToUser_B_fkey` FOREIGN KEY (`B`) REFERENCES `User`(`uid`) ON DELETE CASCADE ON UPDATE CASCADE;

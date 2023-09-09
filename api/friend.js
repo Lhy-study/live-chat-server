@@ -1,4 +1,4 @@
-const prisma = require("../prisma")
+const { friendShip, friendReq } = require("../prisma")
 
 //不要拿到用户的密码
 const userSelect = {
@@ -13,7 +13,7 @@ const userSelect = {
 function becomeFriend(uid1, uid2) {
   return new Promise(async (resolve, reject) => {
     try {
-      const result = await prisma.friendShip.create({
+      const result = await friendShip.create({
         data: {
           id1: uid1,
           id2: uid2,
@@ -31,7 +31,7 @@ function becomeFriend(uid1, uid2) {
 function getMyFriend(uid) {
   return new Promise(async (resolve, reject) => {
     try {
-      const result1 = await prisma.friendShip.findMany({
+      const result1 = await friendShip.findMany({
         where: {
           id1: uid
         },
@@ -43,7 +43,7 @@ function getMyFriend(uid) {
           time: true
         },
       });
-      const result2 = await prisma.friendShip.findMany({
+      const result2 = await friendShip.findMany({
         where: {
           id2: uid,
         },
@@ -67,13 +67,13 @@ function getMyFriend(uid) {
 function isFriend(myId, targetId) {
   return new Promise(async (resolve, reject) => {
     try {
-      const result1 = await prsima.friendShip.findMany({
+      const result1 = await friendShip.findMany({
         where: {
           id1: myId,
           id2: targetId,
         }
       });
-      const result2 = await prisma.friendShip.findMany({
+      const result2 = await friendShip.findMany({
         where: {
           id1: targetId,
           id2: myId,
@@ -91,16 +91,16 @@ function isFriend(myId, targetId) {
 function sendReq(fromId, targetId) {
   return new Promise(async (resolve, reject) => {
     try {
-      const result=await prisma.friendReq.findMany({
-        where:{
+      const result = await friendReq.findMany({
+        where: {
           fromId,
           targetId,
         }
       });
-      if(result.length!=0){
+      if (result.length != 0) {
         throw new Error('您已经向该好友发起过请求了,请不要再发送了')
       }
-      await prisma.friendReq.create({
+      await friendReq.create({
         data: {
           fromId,
           targetId,
@@ -118,7 +118,7 @@ function sendReq(fromId, targetId) {
 function getFriReq(uid) {
   return new Promise(async (resolve, reject) => {
     try {
-      const result = await prisma.friendReq.findMany({
+      const result = await friendReq.findMany({
         where: {
           targetId: uid
         },
