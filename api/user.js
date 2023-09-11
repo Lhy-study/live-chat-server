@@ -1,5 +1,12 @@
 const { user } = require("../prisma");
 
+const userSelect = {
+    uid: true,
+    username: true,
+    gender: true,
+    avatar: true,
+    signature: true,
+  }
 
 //用户注册
 function createUser({ username, password }) {
@@ -69,18 +76,43 @@ function update({ uid, value, type }) {
 
 // 用户之前注册查找是否重名
 function findUser(username) {
+    // console.log(username);
     return user.findMany({
         where: {
             username,
+        },
+        select:{
+            uid:true,
+            username:true,
+            avatar:true,
+            signature:true,
+            gender:true,
         }
     });
+}
+
+function getUserInfo(uid){
+    return new Promise(async (resolve,reject)=>{
+        try {
+            const result=await user.findFirst({
+                where:{
+                    uid,
+                },
+                select:userSelect
+            })
+            resolve(result)
+        } catch (error) {
+            reject(error)
+        }
+    })
 }
 
 module.exports = {
     createUser,
     login,
     update,
-    findUser
+    findUser,
+    getUserInfo
 }
 
 

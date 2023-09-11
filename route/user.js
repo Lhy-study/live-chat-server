@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const prisma = require("../prisma");
-const { createUser, update, login, findUser } = require("../api/user");
+const { createUser, update, login, findUser ,getUserInfo } = require("../api/user");
 const jwt = require("jsonwebtoken");
 const { secretky } = require("../global");
 
@@ -99,5 +99,51 @@ router.post("/update/:type", (request, response) => {
     update({ uid, value, type })
         .then
 });
+
+//搜索用户
+router.post("/search",(request,response)=>{
+    const { username } = request.body;
+    findUser(username)
+        .then((res)=>{
+            response.send({
+                code:200,
+                data:res,
+                msg:"搜素用户成功"
+            })
+        })
+        .catch((e)=>{
+            response.send({
+                code:500,
+                msg:"请稍后重试",
+                errMsg:e
+            })
+        })
+        .finally(()=>{
+            prisma.$disconnect();
+        })
+});
+
+//获取用户信息
+router.post("/getUserInfo",(request,response)=>{
+    const { uid } =request.body;
+    getUserInfo(uid)
+        .then((data)=>{
+            response.send({
+                code:200,
+                msg:"获取好友信息成功",
+                data
+            })
+        })
+        .catch((e)=>{
+            response.send({
+                code:500,
+                msg:e.message,
+                errMsg:e
+            })
+        })
+        .finally(()=>{
+            prisma.$disconnect()
+        })
+})
 
 module.exports = router
