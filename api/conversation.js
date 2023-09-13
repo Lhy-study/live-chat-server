@@ -1,5 +1,13 @@
 const { conversation  } = require("../prisma");
 
+const userSelect = {
+    uid: true,
+    username: true,
+    gender: true,
+    avatar: true,
+    signature: true,
+}
+
 //首先要找
 function startConversation(id1, id2) {
     return new Promise(async (resolve, reject) => {
@@ -105,12 +113,19 @@ function getConverIdList(uid){
 function getConverChatInfo(convId){
     return new Promise(async (resolve,reject)=>{
         try {
-            const result = await conversation.findMany({
+            const result = await conversation.findFirst({
                 where:{
                     convId,
                 },
                 include:{
-                    ChatInfos:true
+                    ChatInfos:{
+                        include:{
+                            senderInfo:{
+                                select:userSelect
+                            }
+                        }
+                    },
+                    Users:true
                 }
             })
             resolve(result)

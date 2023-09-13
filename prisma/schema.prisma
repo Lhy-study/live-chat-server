@@ -54,7 +54,7 @@ model FriendReq {
 
 //聊天会话表
 model Conversation {
-  convId     Int      @id @default(autoincrement()) @map("conv_id") 
+  convId     Int      @id @default(autoincrement()) @map("conv_id") @unique
   isGroup    Boolean  @default(false) @map("is_group") //是不是群聊
   createTime DateTime @default(now()) @map("create_time") 
   endChatId   Int? @map("end_chat_id")  @unique//最后会话ID
@@ -70,7 +70,7 @@ model ChatInfo {
   chatInfoId  Int            @id @default(autoincrement()) @map("chatinfo_id") 
   senderId    Int            @map("sender_id")
   content     String
-  contentType chat_info_type
+  contentType chat_info_type @default(TEXT)
   sendTime    DateTime       @default(now()) @map("send_time")
   convId Int @map("convid") @unique
 
@@ -90,4 +90,6 @@ enum user_gender {
 enum chat_info_type {
   TEXT
   IMG
+  VEDIO
+  FILE
 }

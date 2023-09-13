@@ -50,7 +50,7 @@ router.get("/getConverIdList",(request,response)=>{
         .finally(() => {
             prisma.$disconnect();
         })
-})
+});
 
 //  创建/开始聊天
 router.post("/startChat",(request,response)=>{
@@ -73,6 +73,28 @@ router.post("/startChat",(request,response)=>{
         })
         .finally(() => {
             prisma.$disconnect();
+        })
+});
+
+router.post("/getConverChatInfo",(request,response)=>{
+    const { convId } = request.body
+    getConverChatInfo(convId)
+        .then((data)=>{
+            response.send({
+                code:200,
+                data,
+                msg:"成功"
+            })
+        })
+        .catch((e)=>{
+            response.send({
+                code:500,
+                msg:e.message,
+                errMsg:e
+            })
+        })
+        .finally(()=>{
+            prisma.$disconnect()
         })
 })
 

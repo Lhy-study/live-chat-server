@@ -1,6 +1,8 @@
+const http=require("http");
 const express=require("express");
-const cors=require("cors");
 const app=express();
+const server=http.createServer(app)
+const cors=require("cors");
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
@@ -10,7 +12,6 @@ app.use(cors({
     credentials:true
 }));
 app.use("/",require("./route/index"));
-
 
 /*
 * 处理当请求到没有配置的路由时
@@ -22,6 +23,14 @@ app.use((req,res)=>{
     })
 })
 
-app.listen(5000,()=>{
+
+// app.listen(5000,()=>{
+//     console.log('监听5000端口成功，express web服务器已经启动');
+// });
+
+server.listen(5000,()=>{
     console.log('监听5000端口成功，express web服务器已经启动');
-});
+})
+
+// console.log(io);
+module.exports=server
