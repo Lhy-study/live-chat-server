@@ -35,7 +35,6 @@ function startConversation(id1, id2) {
                 },
                 include: {
                     Users: true,
-                    endChat:true,
                 }
             })
             if(result.length===0){
@@ -51,7 +50,7 @@ function startConversation(id1, id2) {
                         }
                     }
                 });
-                resolve(createResult);
+                resolve([createResult]);
             }else{
                 resolve(result);
             }   
@@ -79,19 +78,6 @@ function getConverIdList(uid){
                     ]
                 },
                 include:{
-                    endChat:{
-                        select:{
-                            sendTime:true,
-                            content:true,
-                            contentType:true,
-                            senderInfo:{
-                                select:{
-                                    uid:true,
-                                    username:true
-                                }
-                            }
-                        }
-                    },
                     //这里要把非自己的用户当做会话封面
                     Users:{
                         where:{

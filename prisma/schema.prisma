@@ -24,7 +24,9 @@ model User {
 
   sendChatInfo ChatInfo[] @relation("chatInfo_User") //用户发送过的信息内容
 
-  conversations Conversation[] //用户参与过的会话信息
+  conversations    Conversation[] //用户参与过的会话信息
+  CircleOfFriendss CircleOfFriends[] //用户发过的朋友圈
+  Messages         CFMessage[] //用户在朋友圈在的留言
 }
 
 //好友关系表
@@ -32,7 +34,7 @@ model FriendShip {
   id       Int      @id @default(autoincrement())
   id1      Int
   id2      Int
-  time     DateTime 
+  time     DateTime
   isDelete Boolean? @default(false) @map("isdelete")
 
   id1User User @relation("FriendShip_id1", fields: [id1], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_id1")
@@ -41,12 +43,12 @@ model FriendShip {
 
 //好友请求表
 model FriendReq {
-  id        Int      @id @default(autoincrement())
-  fromId    Int      @map("form_uid") //发起请求的id  
-  targetId  Int      @map("target_uid") //被请求的id
-  startTime DateTime @default(now()) @map("start_time") 
-  agreeTime DateTime? @map("agree_time") 
-  isAgree   Boolean  @default(false) @map("is_agree")
+  id        Int       @id @default(autoincrement())
+  fromId    Int       @map("form_uid") //发起请求的id  
+  targetId  Int       @map("target_uid") //被请求的id
+  startTime DateTime  @default(now()) @map("start_time")
+  agreeTime DateTime? @map("agree_time")
+  isAgree   Boolean   @default(false) @map("is_agree")
 
   fromUser   User @relation("friendreq_from_idTouser", fields: [fromId], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_from")
   targetUser User @relation("friendreq_tardet_idTouser", fields: [targetId], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_target")
@@ -54,29 +56,69 @@ model FriendReq {
 
 //聊天会话表
 model Conversation {
-  convId     Int      @id @default(autoincrement()) @map("conv_id") @unique
+  convId     Int      @id @unique @default(autoincrement()) @map("conv_id")
   isGroup    Boolean  @default(false) @map("is_group") //是不是群聊
-  createTime DateTime @default(now()) @map("create_time") 
-  endChatId   Int? @map("end_chat_id")  @unique//最后会话ID
+  createTime DateTime @default(now()) @map("create_time")
+  endChatId  Int?     @unique @map("end_chat_id") //最后会话ID
 
-
-  endChat ChatInfo? @relation("ChatInfo_Conversation_endChat") ///最后会话信息
-  ChatInfos ChatInfo[]  @relation("ChatInfo_Conversation")//会话包含的聊天信息 多对多
-  Users User[] //这个会话包含的用户
+  ChatInfos ChatInfo[] @relation("ChatInfo_Conversation") //会话包含的聊天信息 多对多
+  Users     User[] //这个会话包含的用户
 }
 
 //聊天信息表
 model ChatInfo {
-  chatInfoId  Int            @id @default(autoincrement()) @map("chatinfo_id") 
+  chatInfoId  Int            @id @default(autoincrement()) @map("chatinfo_id")
   senderId    Int            @map("sender_id")
   content     String
   contentType chat_info_type @default(TEXT)
   sendTime    DateTime       @default(now()) @map("send_time")
-  convId Int @map("convid") @unique
+  convId      Int            @unique @map("convid")
 
-  conversation Conversation @relation("ChatInfo_Conversation_endChat",fields: [convId],references: [convId],map: "ChatInfo_con_end")
-  conversations Conversation  @relation("ChatInfo_Conversation",fields: [convId],references: [convId],map: "ChatInfo_con") //属于这条消息的会话信息 多对多
-  senderInfo User @relation("chatInfo_User",fields: [senderId],references: [uid]) //发送这条信息的用户信息
+  conversations Conversation @relation("ChatInfo_Conversation", fields: [convId], references: [convId], map: "ChatInfo_con") //属于这条消息的会话信息 多对多
+  senderInfo    User         @relation("chatInfo_User", fields: [senderId], references: [uid]) //发送这条信息的用户信息
+}
+
+//朋友圈
+model CircleOfFriends {
+  cirFriId Int      @id @default(autoincrement()) @map("cirfri_id")
+  text     String   @map("text") //文字内容
+  userId   Int
+  otherId  Int?
+  time     DateTime //发表时间
+
+  userInfo   User        @relation(fields: [userId], references: [uid])
+  other      OtherFiles?
+  CFMessages CFMessage[] 
+}
+
+//在朋友圈下的其他除文本外的内容
+model OtherFiles {
+  otherId    Int                         @id @default(autoincrement()) @map("other_id")
+  otherType  circleOfFriends_other_type? //附加的内容类型
+  otherValue String? //附加的内容在后端的路径
+  CFId       Int                         @unique
+
+  circleOfFriend CircleOfFriends @relation(fields: [CFId], references: [cirFriId])
+}
+
+//某条朋友圈的留言信息
+model CFMessage {
+  CFMessageId Int      @id @default(autoincrement()) @map("other_id")
+  text        String
+  userId      Int
+  CFId        Int
+  time        DateTime
+
+  userInfo        User             @relation(fields: [userId], references: [uid])
+  CircleOfFriends CircleOfFriends? @relation(fields: [CFId], references: [cirFriId])
+}
+
+//点赞表
+model LikeCF {
+  userId Int
+  CFId Int
+
+  @@id([userId,CFId]) 
 }
 
 //用户性别
@@ -89,7 +131,14 @@ enum user_gender {
 //聊天的信息类型 ，是文字还是图片
 enum chat_info_type {
   TEXT
+  IMG //图片
+  VEDIO //视频
+  OTHERFILE //文件
+  VOICE //语音
+}
+
+enum circleOfFriends_other_type {
   IMG
   VEDIO
-  FILE
+  OTHERFILE
 }
