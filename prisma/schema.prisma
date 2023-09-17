@@ -72,7 +72,7 @@ model ChatInfo {
   content     String
   contentType chat_info_type @default(TEXT)
   sendTime    DateTime       @default(now()) @map("send_time")
-  convId      Int            @unique @map("convid")
+  convId      Int            @map("convid")
 
   conversations Conversation @relation("ChatInfo_Conversation", fields: [convId], references: [convId], map: "ChatInfo_con") //属于这条消息的会话信息 多对多
   senderInfo    User         @relation("chatInfo_User", fields: [senderId], references: [uid]) //发送这条信息的用户信息

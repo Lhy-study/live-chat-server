@@ -1,4 +1,4 @@
-const { conversation  } = require("../prisma");
+const { conversation, chatInfo } = require("../prisma");
 
 const userSelect = {
     uid: true,
@@ -37,23 +37,23 @@ function startConversation(id1, id2) {
                     Users: true,
                 }
             })
-            if(result.length===0){
-                const createResult=await conversation.create({
-                    data:{
-                        isGroup:false,
-                        createTime:new Date(),
-                        Users:{
-                            connect:[
-                                {uid:id1,},
-                                {uid:id2}
+            if (result.length === 0) {
+                const createResult = await conversation.create({
+                    data: {
+                        isGroup: false,
+                        createTime: new Date(),
+                        Users: {
+                            connect: [
+                                { uid: id1, },
+                                { uid: id2 }
                             ]
                         }
                     }
                 });
                 resolve([createResult]);
-            }else{
+            } else {
                 resolve(result);
-            }   
+            }
         } catch (error) {
             reject(error)
         }
@@ -61,57 +61,79 @@ function startConversation(id1, id2) {
 }
 
 //获取会话id
-function getConverIdList(uid){
-    return new Promise(async(resolve,reject)=>{
+function getConverIdList(uid) {
+    // console.log(uid);
+    return new Promise(async (resolve, reject) => {
         try {
-            const result =await conversation.findMany({
-                where:{
-                    isGroup:false,//代表着不是群聊，封面为对方的头像
-                    AND:[
+            const result = await conversation.findMany({
+                where: {
+                    isGroup: false,
+                    AND: [
                         {
-                            Users:{
-                                some:{
+                            Users: {
+                                some: {
                                     uid,
                                 }
                             }
                         }
                     ]
                 },
-                include:{
-                    //这里要把非自己的用户当做会话封面
-                    Users:{
-                        where:{
-                            NOT:{
+                include: {
+                    Users: {
+                        where: {
+                            NOT: {
                                 uid,
                             }
                         }
                     }
                 }
-            })
-            resolve(result)
+            });
+            // console.log(result, 91);
+
+            // 使用 Promise.all 等待所有 chatInfo.findFirst 完成
+            const promises = result.map((item) => {
+                if (item.endChatId) {
+                    return chatInfo.findFirst({
+                        where: {
+                            chatInfoId: item.endChatId
+                        },
+                        include: {
+                            senderInfo: true
+                        }
+                    }).then((res) => {
+                        item['endChat'] = res;
+                    });
+                }
+            });
+
+            // 等待所有 promises 执行完毕
+            await Promise.all(promises);
+
+            resolve(result);
         } catch (error) {
-            reject(error)
+            reject(error);
         }
-    })
+    });
 }
 
+
 //获取某个会话的所有聊天信息
-function getConverChatInfo(convId){
-    return new Promise(async (resolve,reject)=>{
+function getConverChatInfo(convId) {
+    return new Promise(async (resolve, reject) => {
         try {
             const result = await conversation.findFirst({
-                where:{
+                where: {
                     convId,
                 },
-                include:{
-                    ChatInfos:{
-                        include:{
-                            senderInfo:{
-                                select:userSelect
+                include: {
+                    ChatInfos: {
+                        include: {
+                            senderInfo: {
+                                select: userSelect
                             }
                         }
                     },
-                    Users:true
+                    Users: true
                 }
             })
             resolve(result)
@@ -121,7 +143,7 @@ function getConverChatInfo(convId){
     })
 }
 
-module.exports={
+module.exports = {
     startConversation,
     getConverIdList,
     getConverChatInfo,

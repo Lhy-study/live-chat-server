@@ -39,7 +39,7 @@ function sendChatInfo({convId,senderId,content,contentType}) {
                     senderId,
                     content,
                     sendTime:new Date(),
-                    // contentType:"TEXT"
+                    contentType,
                 }
             })
             const data = await chatInfo.findFirst({
