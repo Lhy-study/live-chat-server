@@ -1,8 +1,21 @@
 const router = require("express").Router();
 const prisma = require("../prisma");
-const { createUser, update, login, findUser ,getUserInfo } = require("../api/user");
+const {
+    createUser,
+    update,
+    login,
+    findUser,
+    getUserInfo,
+    updateAvatar,
+    updatePassword
+} = require("../api/user");
 const jwt = require("jsonwebtoken");
 const { secretky } = require("../global");
+const multer = require("multer");
+const { writeFile } = require("fs")
+const { parse, resolve } = require("path")
+
+const upload = multer();
 
 //用户注册 1.首先要格式校验
 router.post("/register", async (request, response) => {
@@ -13,26 +26,26 @@ router.post("/register", async (request, response) => {
             code: 400,
             msg: "请检查用户名或者密码是否符合规范",
         });
-    }else if (result.length) {//代表已经有用户了
+    } else if (result.length) {//代表已经有用户了
         response.send({
             code: 405,
             msg: "用户已经存在,请换个用户名"
         })
     } else {
-        createUser({username,password})
-            .then(()=>{
+        createUser({ username, password })
+            .then(() => {
                 response.send({
-                    code:201,
-                    msg:"注册成功，请返回登录页登录"
+                    code: 201,
+                    msg: "注册成功，请返回登录页登录"
                 })
             })
-            .catch(()=>{
+            .catch(() => {
                 response.send({
-                    code:500,
-                    msg:"注册失败，请稍后重试"
+                    code: 500,
+                    msg: "注册失败，请稍后重试"
                 })
             })
-            .finally(()=>{
+            .finally(() => {
                 prisma.$disconnect();
             })
     }
@@ -92,46 +105,117 @@ router.get("/isLogin", (request, response) => {
     }
 });
 
-//用户修改信息(不包括密码、头像)
-router.post("/update/:type", (request, response) => {
-    const { uid, value } = request.body;
-    const type = request.params.type;
-    update({ uid, value, type })
-        .then
+//查看是否有权限
+router.use((request, response, next) => {
+    const token = request.headers['authorization']; //获取到存储到客户端的token;
+    if (token) {
+        jwt.verify(token, secretky, (e, user) => {
+            // console.log(user);
+            if (e) {
+                response.send({
+                    code: 401,
+                    msg: "很抱歉，您还没有登录，登录后方可进行"
+                });
+            } else {
+                request.user = user;
+                next();
+            }
+        });
+    } else {
+        response.send({
+            code: 401,
+            msg: "很抱歉，您还没有登录过"
+        })
+    }
 });
 
-//搜索用户
-router.post("/search",(request,response)=>{
-    const { username } = request.body;
-    findUser(username)
-        .then((res)=>{
+//用户修改信息(不包括密码、头像)
+router.post("/update/", (request, response) => {
+    const { uid, value } = request.body;
+    console.log(uid, value);
+    update({ uid, value })
+        .then((data) => {
+            const token = jwt.sign(data, secretky, { expiresIn: "7d" })
             response.send({
-                code:200,
-                data:res,
-                msg:"搜素用户成功"
+                code: 200,
+                msg: "修改成功",
+                data,
+                token,
             })
         })
-        .catch((e)=>{
+        .catch((e) => {
             response.send({
-                code:500,
-                msg:"请稍后重试",
-                errMsg:e
+                code: 500,
+                msg: e.message,
+                errMsg: e
             })
         })
-        .finally(()=>{
+        .finally(() => {
             prisma.$disconnect();
         })
 });
 
-//获取用户信息
-router.post("/getUserInfo",(request,response)=>{
-    const { uid } =request.body;
-    getUserInfo(uid)
-        .then((data)=>{
+//这里使用formdata格式传输
+router.post("/update/avatar", upload.fields([{ name: "avatar" }, { name: "uid" }]), (request, response) => {
+    // console.log(request.files.avatar[0]);
+    // console.log(request.body);
+    const file = request.files.avatar[0];
+    const { buffer, originalname } = file;
+    const uid = parseInt(request.body.uid) //因为前端经过formdata的值必须是字符串，所有进行转化变为数字
+    const user = request.user;
+    if (uid !== user.uid) {
+        response.send({
+            code: 401,
+            msg: "您没有权限修改这个用户信息"
+        });
+        return
+    }
+
+    const { ext } = parse(originalname);
+    const fileName = `${uid + Date.now() + ext}`;
+    writeFile(resolve(__dirname, `../public/avatar/${fileName}`), buffer, (err) => {
+        if (err) throw err
+        console.log(resolve(__dirname, `../public/avatar/${fileName}`));
+    })
+
+    updateAvatar(uid, `/avatar/${fileName}`)
+        .then((data) => {
+            const token = jwt.sign(data, secretky, { expiresIn: "7d" })
+            response.send({
+                code: 200,
+                data,
+                msg: "头像修改成功",
+                token
+            })
+        })
+        .catch((e) => {
+            response.send({
+                code: 500,
+                msg: e.message,
+                errMsg: e
+            })
+        })
+        .finally(() => {
+            prisma.$disconnect();
+        })
+});
+
+router.post("/update/password", (request, response) => {
+    const { uid, password, newPsw } = request.body;
+    // console.log(typeof uid,typeof request.user.uid , uid, request.user.uid);
+    if(uid!==request.user.uid){
+        response.send({
+            code: 401,
+            msg: "您没有权限修改这个用户信息"
+        });
+        return
+    }
+
+    updatePassword(uid,password,newPsw)
+        .then(()=>{
             response.send({
                 code:200,
-                msg:"获取好友信息成功",
-                data
+                msg:"密码修改成功"
             })
         })
         .catch((e)=>{
@@ -142,6 +226,52 @@ router.post("/getUserInfo",(request,response)=>{
             })
         })
         .finally(()=>{
+            prisma.$disconnect();
+        })
+})
+
+//搜索用户
+router.post("/search", (request, response) => {
+    const { username } = request.body;
+    findUser(username)
+        .then((res) => {
+            response.send({
+                code: 200,
+                data: res,
+                msg: "搜素用户成功"
+            })
+        })
+        .catch((e) => {
+            response.send({
+                code: 500,
+                msg: "请稍后重试",
+                errMsg: e
+            })
+        })
+        .finally(() => {
+            prisma.$disconnect();
+        })
+});
+
+//获取用户信息
+router.post("/getUserInfo", (request, response) => {
+    const { uid } = request.body;
+    getUserInfo(uid)
+        .then((data) => {
+            response.send({
+                code: 200,
+                msg: "获取好友信息成功",
+                data
+            })
+        })
+        .catch((e) => {
+            response.send({
+                code: 500,
+                msg: e.message,
+                errMsg: e
+            })
+        })
+        .finally(() => {
             prisma.$disconnect()
         })
 })

@@ -51,28 +51,4 @@ router.post("/getChatInfoList",(request,response)=>{
         })
 });
 
-// router.post("/sendChatInfo",(request,response)=>{
-//     const { convId, senderId , content , contentType} = request.body;
-//     // console.log(contentType);
-//     sendChatInfo({convId,senderId,content,contentType})
-//         .then((data)=>{
-//             response.send({
-//                 code:200,
-//                 msg:"成功",
-//                 data
-//             })
-//         })
-//         .catch((e)=>{
-//             console.log(e);
-//             response.send({
-//                 code:500,
-//                 msg:e.message,
-//                 errMsg:e
-//             })
-//         })
-//         .finally(()=>{
-//             prisma.$disconnect()
-//         })
-// });
-
 module.exports=router

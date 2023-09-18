@@ -53,19 +53,71 @@ function login({ username, password }) {
     })
 }
 
-//修改用户性别
-function update({ uid, value, type }) {
-    const data = {};
-    data[`${type}`] = value
+//修改用户
+function update({ uid, value :{ username, gender , signature }}) {
+    // const data = {};
+    // data[`${type}`] = value
     return new Promise(async (resolve, reject) => {
         try {
-            await user.update({
+            const result = await user.update({
                 where: {
                     uid,
                 },
-                data: data
+                data:{
+                    username,
+                    gender,
+                    signature,
+                }
             })
-            resolve();
+            delete result.password
+            resolve(result);
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+function updateAvatar(uid,avatar){
+    return new Promise(async (resolve, reject) => {
+        try {
+            const result = await user.update({
+                where: {
+                    uid,
+                },
+                data:{
+                    avatar,
+                }
+            })
+            delete result.password
+            resolve(result);
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+function updatePassword(uid,password,newPsw){
+    return new Promise(async (resolve,reject)=>{
+        try {
+            const result = await user.findUnique({
+                where:{
+                    uid,
+                    password,
+                }
+            })
+            if(result){
+                await user.update({
+                    where:{
+                        uid,
+                    },
+                    data:{
+                        password:newPsw
+                    }
+                })
+                resolve()
+            }else{
+                throw new Error("原始密码不正确，请重试输入")
+            }
         } catch (error) {
             reject(error)
         }
@@ -91,6 +143,7 @@ function findUser(username) {
     });
 }
 
+
 function getUserInfo(uid){
     return new Promise(async (resolve,reject)=>{
         try {
@@ -112,7 +165,9 @@ module.exports = {
     login,
     update,
     findUser,
-    getUserInfo
+    getUserInfo,
+    updateAvatar,
+    updatePassword,
 }
 
 
