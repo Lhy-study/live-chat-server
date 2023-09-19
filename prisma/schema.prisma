@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 //用户表
 model User {
   uid       Int         @id @default(autoincrement()) //用户id
@@ -26,7 +27,7 @@ model User {
 
   conversations    Conversation[] //用户参与过的会话信息
   CircleOfFriendss CircleOfFriends[] //用户发过的朋友圈
-  Messages         CFMessage[] //用户在朋友圈在的留言
+  Messages         COFMessage[] //用户在朋友圈在的留言
 }
 
 //好友关系表
@@ -37,8 +38,8 @@ model FriendShip {
   time     DateTime
   isDelete Boolean? @default(false) @map("isdelete")
 
-  id1User User @relation("FriendShip_id1", fields: [id1], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_id1")
-  id2User User @relation("FriendShip_id2", fields: [id2], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_id2")
+  id1User User @relation("FriendShip_id1", fields: [id1], references: [uid], map: "fk_id1")
+  id2User User @relation("FriendShip_id2", fields: [id2], references: [uid], map: "fk_id2")
 }
 
 //好友请求表
@@ -50,8 +51,8 @@ model FriendReq {
   agreeTime DateTime? @map("agree_time")
   isAgree   Boolean   @default(false) @map("is_agree")
 
-  fromUser   User @relation("friendreq_from_idTouser", fields: [fromId], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_from")
-  targetUser User @relation("friendreq_tardet_idTouser", fields: [targetId], references: [uid], onDelete: NoAction, onUpdate: NoAction, map: "fk_target")
+  fromUser   User @relation("friendreq_from_idTouser", fields: [fromId], references: [uid], map: "fk_from")
+  targetUser User @relation("friendreq_tardet_idTouser", fields: [targetId], references: [uid], map: "fk_target")
 }
 
 //聊天会话表
@@ -83,12 +84,12 @@ model CircleOfFriends {
   cirFriId Int      @id @default(autoincrement()) @map("cirfri_id")
   text     String   @map("text") //文字内容
   userId   Int
-  otherId  Int?
+  otherId  Int? //其他文件的信息
   time     DateTime //发表时间
 
   userInfo   User        @relation(fields: [userId], references: [uid])
   other      OtherFiles?
-  CFMessages CFMessage[] 
+  COFMessages COFMessage[] 
 }
 
 //在朋友圈下的其他除文本外的内容
@@ -96,29 +97,29 @@ model OtherFiles {
   otherId    Int                         @id @default(autoincrement()) @map("other_id")
   otherType  circleOfFriends_other_type? //附加的内容类型
   otherValue String? //附加的内容在后端的路径
-  CFId       Int                         @unique
+  COFId       Int                         @unique
 
-  circleOfFriend CircleOfFriends @relation(fields: [CFId], references: [cirFriId])
+  circleOfFriend CircleOfFriends @relation(fields: [COFId], references: [cirFriId])
 }
 
 //某条朋友圈的留言信息
-model CFMessage {
+model COFMessage {
   CFMessageId Int      @id @default(autoincrement()) @map("other_id")
   text        String
   userId      Int
-  CFId        Int
+  COFId        Int
   time        DateTime
 
   userInfo        User             @relation(fields: [userId], references: [uid])
-  CircleOfFriends CircleOfFriends? @relation(fields: [CFId], references: [cirFriId])
+  CircleOfFriends CircleOfFriends? @relation(fields: [COFId], references: [cirFriId])
 }
 
 //点赞表
 model LikeCF {
   userId Int
-  CFId Int
+  COFId Int
 
-  @@id([userId,CFId]) 
+  @@unique([userId,COFId])
 }
 
 //用户性别

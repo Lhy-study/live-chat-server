@@ -55,7 +55,6 @@ CREATE TABLE `ChatInfo` (
     `send_time` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `convid` INTEGER NOT NULL,
 
-    UNIQUE INDEX `ChatInfo_convid_key`(`convid`),
     PRIMARY KEY (`chatinfo_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -75,18 +74,18 @@ CREATE TABLE `OtherFiles` (
     `other_id` INTEGER NOT NULL AUTO_INCREMENT,
     `otherType` ENUM('IMG', 'VEDIO', 'OTHERFILE') NULL,
     `otherValue` VARCHAR(191) NULL,
-    `CFId` INTEGER NOT NULL,
+    `COFId` INTEGER NOT NULL,
 
-    UNIQUE INDEX `OtherFiles_CFId_key`(`CFId`),
+    UNIQUE INDEX `OtherFiles_COFId_key`(`COFId`),
     PRIMARY KEY (`other_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `CFMessage` (
+CREATE TABLE `COFMessage` (
     `other_id` INTEGER NOT NULL AUTO_INCREMENT,
     `text` VARCHAR(191) NOT NULL,
     `userId` INTEGER NOT NULL,
-    `CFId` INTEGER NOT NULL,
+    `COFId` INTEGER NOT NULL,
     `time` DATETIME(3) NOT NULL,
 
     PRIMARY KEY (`other_id`)
@@ -95,9 +94,9 @@ CREATE TABLE `CFMessage` (
 -- CreateTable
 CREATE TABLE `LikeCF` (
     `userId` INTEGER NOT NULL,
-    `CFId` INTEGER NOT NULL,
+    `COFId` INTEGER NOT NULL,
 
-    PRIMARY KEY (`userId`, `CFId`)
+    UNIQUE INDEX `LikeCF_userId_COFId_key`(`userId`, `COFId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -110,16 +109,16 @@ CREATE TABLE `_ConversationToUser` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `FriendShip` ADD CONSTRAINT `fk_id1` FOREIGN KEY (`id1`) REFERENCES `User`(`uid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE `FriendShip` ADD CONSTRAINT `fk_id1` FOREIGN KEY (`id1`) REFERENCES `User`(`uid`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `FriendShip` ADD CONSTRAINT `fk_id2` FOREIGN KEY (`id2`) REFERENCES `User`(`uid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE `FriendShip` ADD CONSTRAINT `fk_id2` FOREIGN KEY (`id2`) REFERENCES `User`(`uid`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `FriendReq` ADD CONSTRAINT `fk_from` FOREIGN KEY (`form_uid`) REFERENCES `User`(`uid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE `FriendReq` ADD CONSTRAINT `fk_from` FOREIGN KEY (`form_uid`) REFERENCES `User`(`uid`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `FriendReq` ADD CONSTRAINT `fk_target` FOREIGN KEY (`target_uid`) REFERENCES `User`(`uid`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE `FriendReq` ADD CONSTRAINT `fk_target` FOREIGN KEY (`target_uid`) REFERENCES `User`(`uid`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ChatInfo` ADD CONSTRAINT `ChatInfo_con` FOREIGN KEY (`convid`) REFERENCES `Conversation`(`conv_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -131,13 +130,13 @@ ALTER TABLE `ChatInfo` ADD CONSTRAINT `ChatInfo_sender_id_fkey` FOREIGN KEY (`se
 ALTER TABLE `CircleOfFriends` ADD CONSTRAINT `CircleOfFriends_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`uid`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `OtherFiles` ADD CONSTRAINT `OtherFiles_CFId_fkey` FOREIGN KEY (`CFId`) REFERENCES `CircleOfFriends`(`cirfri_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `OtherFiles` ADD CONSTRAINT `OtherFiles_COFId_fkey` FOREIGN KEY (`COFId`) REFERENCES `CircleOfFriends`(`cirfri_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `CFMessage` ADD CONSTRAINT `CFMessage_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`uid`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `COFMessage` ADD CONSTRAINT `COFMessage_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`uid`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `CFMessage` ADD CONSTRAINT `CFMessage_CFId_fkey` FOREIGN KEY (`CFId`) REFERENCES `CircleOfFriends`(`cirfri_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `COFMessage` ADD CONSTRAINT `COFMessage_COFId_fkey` FOREIGN KEY (`COFId`) REFERENCES `CircleOfFriends`(`cirfri_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_ConversationToUser` ADD CONSTRAINT `_ConversationToUser_A_fkey` FOREIGN KEY (`A`) REFERENCES `Conversation`(`conv_id`) ON DELETE CASCADE ON UPDATE CASCADE;

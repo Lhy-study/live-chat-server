@@ -181,6 +181,7 @@ router.post("/update/avatar", upload.fields([{ name: "avatar" }, { name: "uid" }
     updateAvatar(uid, `/avatar/${fileName}`)
         .then((data) => {
             const token = jwt.sign(data, secretky, { expiresIn: "7d" })
+            console.log(token,data);
             response.send({
                 code: 200,
                 data,
